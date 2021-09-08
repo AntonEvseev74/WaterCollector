@@ -12,6 +12,12 @@ package ru.evant.water_collector;
  * -2 -> Капля не поймана
  */
 
+/* - разобраться с молниями:
+ *      - исправить размеры всех 3х картинок, сделать одинаковыми (200х480)
+ *      - сделать, чтобы молнии били разные
+ *      - сделать, чтобы удар молнии приходился в центр непойманной капли
+ */
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -35,21 +41,29 @@ public class GameScreen implements Screen {
     OrthographicCamera camera;
     SpriteBatch batch;
 
-    Texture dropImage;
-    Texture bucketImage;
     Texture backgroundImage;
+
     Sound dropSound;
     Sound loudlySound;
     Music rainMusic;
 
+    Texture bucketImage;
     Rectangle bucket;
 
     Vector3 touchPos;
+    Texture dropImage;
     Array<Rectangle> raindrops;
-
     long lastDropTime;
+
     int dropsGathered;
     String score = "Score: ";
+
+    // Молния
+    Texture lightningBoltImage;
+    Rectangle lightningBolt;
+    String[] lightningBolts = {"lightning_bolts_1.png", "lightning_bolts_2.png", "lightning_bolts_3.png"};
+    int rndLightningBoltsPath = 1; //MathUtils.random(0, 2);
+    long lastTimeLightningBolt;
 
     public GameScreen(final Drop game) {
         this.game = game;
@@ -66,6 +80,13 @@ public class GameScreen implements Screen {
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
         loudlySound = Gdx.audio.newSound(Gdx.files.internal("loudly.mp3"));
 
+        lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
+
+        //Молния
+        lightningBolt = new Rectangle();
+        lightningBolt.x = Const.WIDTH_SCREEN; //Const.WIDTH_SCREEN / 2 - 64 / 2;
+        lightningBolt.y = Const.HEIGHT_SCREEN;
+
         //Включаем музыку
         rainMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
         rainMusic.setLooping(true);
@@ -73,7 +94,7 @@ public class GameScreen implements Screen {
 
         //ведро
         bucket = new Rectangle();
-        bucket.x = Const.WIDTH_SCREEN / 2 - 64 / 2;
+        bucket.x = Const.WIDTH_SCREEN / 2 - Const.SIZE_IMAGE / 2;
         bucket.y = 20;
         bucket.width = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
         bucket.height = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
@@ -108,6 +129,7 @@ public class GameScreen implements Screen {
         for (Rectangle raindrop : raindrops) {
             game.batch.draw(dropImage, raindrop.x, raindrop.y);
         }
+        game.batch.draw(lightningBoltImage, lightningBolt.x, lightningBolt.y);
         game.batch.end();
 
         // <=> Слушатель нажатия на экран
@@ -130,6 +152,12 @@ public class GameScreen implements Screen {
         // <=> Время для создания новой капли
         if (TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnRaindrop();
 
+        // <=> Время для молнии
+        if (TimeUtils.millis() - lastTimeLightningBolt > 1000) {
+            lightningBolt.x = Const.WIDTH_SCREEN;
+            lightningBolt.y = Const.HEIGHT_SCREEN;
+        }
+
         // Запускам капли в цикле
         Iterator<Rectangle> iter = raindrops.iterator();
         while (iter.hasNext()) {
@@ -139,13 +167,21 @@ public class GameScreen implements Screen {
             // <=> Удаление капли, если она ушла за пределы экрана по оси Y
             if (raindrop.y + Const.SIZE_IMAGE < 0) {
                 iter.remove();
+                // счет:
                 dropsGathered -= 2; // -2, капля не поймана
+                // координаты удара молнии
+                lightningBolt.x = raindrop.x - 360; // 360 Это половина размера ширины картинки молнии
+                lightningBolt.y = 0;
+                lastTimeLightningBolt = TimeUtils.millis();
+                // звук молнии
                 loudlySound.play();
             }
 
             // <=>  столкновение капли с ведром
             if (raindrop.overlaps(bucket)) {
+                //счет
                 dropsGathered++; // +1, капля поймана
+                //звук пойманой капли
                 dropSound.play();
                 iter.remove();
             }
@@ -181,6 +217,7 @@ public class GameScreen implements Screen {
         dropSound.dispose();
         loudlySound.dispose();
         rainMusic.dispose();
+        lightningBoltImage.dispose();
     }
 
     @Override
