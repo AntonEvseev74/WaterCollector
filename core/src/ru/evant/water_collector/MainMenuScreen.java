@@ -30,7 +30,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+        Gdx.gl.glClearColor(0, 0, 1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
@@ -38,7 +38,7 @@ public class MainMenuScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         game.font.draw(game.batch, forDescription, 350, 250);
-        game.font.draw(game.batch, forContinue, 360, 230); 
+        game.font.draw(game.batch, forContinue, 360, 230);
         game.batch.end();
 
         //  <=> было ли прикосновение к экрану
