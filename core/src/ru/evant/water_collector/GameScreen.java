@@ -1,7 +1,13 @@
 package ru.evant.water_collector;
 
 /*
- * Логика игры
+ * Логика игры:
+ *
+ * Нужно ведром ловить капли воды.
+ *
+ * Очки:
+ * +1 -> Капля поймана
+ * -2 -> Капля не поймана
  */
 
 import com.badlogic.gdx.Gdx;
@@ -22,7 +28,6 @@ import java.util.Iterator;
 
 public class GameScreen implements Screen {
 
-
     final Drop game;
 
     OrthographicCamera camera;
@@ -39,14 +44,14 @@ public class GameScreen implements Screen {
     Array<Rectangle> raindrops;
 
     long lastDropTime;
-    int dropsGatchered;
+    int dropsGathered;
     String score = "Score: ";
 
     public GameScreen(final Drop game) {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, Const.WIDTH_SCREEN, Const.HEIGHT_SCREEN);
 
         batch = new SpriteBatch();
         touchPos = new Vector3();
@@ -62,10 +67,10 @@ public class GameScreen implements Screen {
 
         //ведро
         bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 / 2;
+        bucket.x = Const.WIDTH_SCREEN / 2 - 64 / 2;
         bucket.y = 20;
-        bucket.width = 64;
-        bucket.height = 64;
+        bucket.width = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
+        bucket.height = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
 
         //капля
         raindrops = new Array<>();
@@ -74,10 +79,10 @@ public class GameScreen implements Screen {
 
 	private void spawnRaindrop() {
 		Rectangle raindrop = new Rectangle();
-		raindrop.x = MathUtils.random(0, 800 - 64);
-		raindrop.y = 480;
-		raindrop.width = 64;
-		raindrop.height = 64;
+		raindrop.x = MathUtils.random(0, Const.WIDTH_SCREEN - Const.SIZE_IMAGE);
+		raindrop.y = Const.HEIGHT_SCREEN;
+		raindrop.width = Const.SIZE_IMAGE;
+		raindrop.height = Const.SIZE_IMAGE;
 		raindrops.add(raindrop);
 		lastDropTime = TimeUtils.nanoTime();
 	}
@@ -91,7 +96,7 @@ public class GameScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.font.draw(game.batch, score + dropsGatchered, 0, 480);
+        game.font.draw(game.batch, score + dropsGathered, 20, 470);
         game.batch.draw(bucketImage, bucket.x, bucket.y);
         for (Rectangle raindrop : raindrops) {
             game.batch.draw(dropImage, raindrop.x, raindrop.y);
@@ -102,7 +107,7 @@ public class GameScreen implements Screen {
         if (Gdx.input.isTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
             camera.unproject(touchPos);
-            bucket.x = (int) (touchPos.x - 64 / 2);
+            bucket.x = (int) (touchPos.x - Const.SIZE_IMAGE / 2);
         }
 
         // <=> Слушатели нажатия кнопок клавиатуры: влево и вправо
@@ -113,7 +118,7 @@ public class GameScreen implements Screen {
 
         // <=> Ограничитель движения ведра по оси X
         if (bucket.x < 0) bucket.x = 0;
-        if (bucket.x > 800 - 64) bucket.x = 800 - 64;
+        if (bucket.x > Const.WIDTH_SCREEN - Const.SIZE_IMAGE) bucket.x = Const.WIDTH_SCREEN - Const.SIZE_IMAGE;
 
         // <=> Время для создания новой капли
         if (TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnRaindrop();
@@ -125,11 +130,14 @@ public class GameScreen implements Screen {
             raindrop.y -= 200 * Gdx.graphics.getDeltaTime(); // Скорость падения капли
 
             // <=> Удаление капли, если она ушла за пределы экрана по оси Y
-            if (raindrop.y + 64 < 0) iter.remove();
+            if (raindrop.y + Const.SIZE_IMAGE < 0) {
+                iter.remove();
+                dropsGathered -= 2; // -2, капля не поймана
+            }
 
             // <=>  столкновение капли с ведром
             if (raindrop.overlaps(bucket)) {
-                dropsGatchered++;
+                dropsGathered++; // +1, капля поймана
                 dropSound.play();
                 iter.remove();
             }

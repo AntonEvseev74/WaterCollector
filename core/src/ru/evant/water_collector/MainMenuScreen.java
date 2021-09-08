@@ -13,6 +13,7 @@ public class MainMenuScreen implements Screen {
 
     final Drop game;
     OrthographicCamera camera;
+
     String forDescription = "Catch all the drops!"; // Поймайте все капли!
     String forContinue = "Click to continue"; // Нажмите чтобы продолжить
 
@@ -20,7 +21,7 @@ public class MainMenuScreen implements Screen {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, Const.WIDTH_SCREEN, Const.HEIGHT_SCREEN);
     }
 
     @Override

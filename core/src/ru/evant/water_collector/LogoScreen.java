@@ -19,6 +19,8 @@ public class LogoScreen implements Screen {
 
     Texture logoImage;
     Rectangle logo;
+    int widthLogo = 700;
+    int heightLogo = 440;
 
     long lastTime;
 
@@ -26,15 +28,15 @@ public class LogoScreen implements Screen {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, Const.WIDTH_SCREEN, Const.HEIGHT_SCREEN);
 
         //лого
         logoImage = new Texture("evant_blackandwhite_logo.png");
         logo = new Rectangle();
-        logo.x = 800 / 2 - 700 / 2;
-        logo.y = 480 / 2 - 440 / 2;
-        logo.width = 700;
-        logo.height = 480;
+        logo.x = Const.WIDTH_SCREEN / 2 - widthLogo / 2;
+        logo.y = Const.HEIGHT_SCREEN / 2 - heightLogo / 2;
+        logo.width = widthLogo;
+        logo.height = heightLogo;
         lastTime = TimeUtils.millis();
     }
 

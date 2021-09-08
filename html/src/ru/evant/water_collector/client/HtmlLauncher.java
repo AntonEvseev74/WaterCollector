@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
 
+import ru.evant.water_collector.Const;
 import ru.evant.water_collector.Drop;
 import ru.evant.water_collector.GameScreen;
 
@@ -12,7 +13,7 @@ public class HtmlLauncher extends GwtApplication {
         // USE THIS CODE FOR A FIXED SIZE APPLICATION
         @Override
         public GwtApplicationConfiguration getConfig () {
-                return new GwtApplicationConfiguration(800, 480);
+                return new GwtApplicationConfiguration(Const.WIDTH_SCREEN, Const.HEIGHT_SCREEN);
         }
         // END CODE FOR FIXED SIZE APPLICATION
 
