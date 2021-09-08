@@ -14,8 +14,8 @@ package ru.evant.water_collector;
 
 /* - разобраться с молниями:
  *      - исправить размеры всех 3х картинок, сделать одинаковыми (200х480)
- *      - сделать, чтобы молнии били разные
- *      - сделать, чтобы удар молнии приходился в центр непойманной капли
+ *      + сделать, чтобы молнии били разные
+ *      + сделать, чтобы удар молнии приходился в центр непойманной капли
  */
 
 import com.badlogic.gdx.Gdx;
@@ -62,7 +62,7 @@ public class GameScreen implements Screen {
     Texture lightningBoltImage;
     Rectangle lightningBolt;
     String[] lightningBolts = {"lightning_bolts_1.png", "lightning_bolts_2.png", "lightning_bolts_3.png"};
-    int rndLightningBoltsPath = 1; //MathUtils.random(0, 2);
+    int rndLightningBoltsPath = MathUtils.random(0, 2);
     long lastTimeLightningBolt;
 
     public GameScreen(final Drop game) {
@@ -84,7 +84,7 @@ public class GameScreen implements Screen {
 
         //Молния
         lightningBolt = new Rectangle();
-        lightningBolt.x = Const.WIDTH_SCREEN; //Const.WIDTH_SCREEN / 2 - 64 / 2;
+        lightningBolt.x = Const.WIDTH_SCREEN / 2 - 300 / 2;
         lightningBolt.y = Const.HEIGHT_SCREEN;
 
         //Включаем музыку
@@ -170,7 +170,9 @@ public class GameScreen implements Screen {
                 // счет:
                 dropsGathered -= 2; // -2, капля не поймана
                 // координаты удара молнии
-                lightningBolt.x = raindrop.x - 360; // 360 Это половина размера ширины картинки молнии
+                rndLightningBoltsPath = MathUtils.random(0, 2);
+                lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
+                lightningBolt.x = raindrop.x - 290/2; // 360 Это половина размера ширины картинки молнии
                 lightningBolt.y = 0;
                 lastTimeLightningBolt = TimeUtils.millis();
                 // звук молнии
