@@ -4,6 +4,8 @@ package ru.evant.water_collector;
  * Логика игры:
  *
  * Нужно ведром ловить капли воды.
+ * Если капли пойманы очки увеличиваются,
+ * в ином случае очки уменьшаются и гремит гром.
  *
  * Очки:
  * +1 -> Капля поймана
@@ -35,7 +37,9 @@ public class GameScreen implements Screen {
 
     Texture dropImage;
     Texture bucketImage;
+    Texture backgroundImage;
     Sound dropSound;
+    Sound loudlySound;
     Music rainMusic;
 
     Rectangle bucket;
@@ -56,9 +60,11 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
         touchPos = new Vector3();
 
+        backgroundImage = new Texture("background.jpg");
         dropImage = new Texture("droplet.png");
         bucketImage = new Texture("bucket.png");
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
+        loudlySound = Gdx.audio.newSound(Gdx.files.internal("loudly.mp3"));
 
         //Включаем музыку
         rainMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
@@ -96,6 +102,7 @@ public class GameScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
+        game.batch.draw(backgroundImage, 0, 0);
         game.font.draw(game.batch, score + dropsGathered, 20, 470);
         game.batch.draw(bucketImage, bucket.x, bucket.y);
         for (Rectangle raindrop : raindrops) {
@@ -133,6 +140,7 @@ public class GameScreen implements Screen {
             if (raindrop.y + Const.SIZE_IMAGE < 0) {
                 iter.remove();
                 dropsGathered -= 2; // -2, капля не поймана
+                loudlySound.play();
             }
 
             // <=>  столкновение капли с ведром
@@ -167,9 +175,11 @@ public class GameScreen implements Screen {
 	@Override
     public void dispose() {
         batch.dispose();
+        backgroundImage.dispose();
         bucketImage.dispose();
         dropImage.dispose();
         dropSound.dispose();
+        loudlySound.dispose();
         rainMusic.dispose();
     }
 
