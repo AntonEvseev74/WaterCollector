@@ -12,16 +12,18 @@ package ru.evant.water_collector;
  * -2 -> Капля не поймана
  */
 
-/* - разобраться с молниями:
- *      - исправить размеры всех 3х картинок, сделать одинаковыми (200х480)
+/* + разобраться с молниями:
+ *      + исправить размеры всех 3х картинок, сделать одинаковыми
  *      + сделать, чтобы молнии били разные
  *      + сделать, чтобы удар молнии приходился в центр непойманной капли
  *
- * - сделать сколько не поймано
- * - через 10 пойманых капель увеличивать скорость капель
+ * + через 20 пойманых капель увеличивать скорость капель
+ *
  * - сделать экран рекордов
  * - сделать меню (кнопк: выход, рекорды)
- * - добавить жизни
+ *
+ * + добавить жизни:
+ *      + количество жизней уменьшается при пропуске капли
  */
 
 import com.badlogic.gdx.Gdx;
@@ -47,39 +49,44 @@ public class GameScreen implements Screen {
     OrthographicCamera camera;
     SpriteBatch batch;
 
-    Texture backgroundImage;
+    Texture backgroundImage;    // фон
 
-    Sound dropSound;
-    Sound loudlySound;
-    Music rainMusic;
+    Sound dropSound;    // звук капли
+    Sound loudlySound;  // звук грозы
+    Music rainMusic;    // фоновый звук шума дождя
 
-    Texture bucketImage;
-    Rectangle bucket;
+    Texture bucketImage;    // ведро
+    Rectangle bucket;       // оболочка ведра (прямоугольный контейнер, в который поместим ведро, для работы с координатами и размерами ведра)
 
     Vector3 touchPos;
 
     // Капли
-    Texture dropImage;
-    Array<Rectangle> raindrops;
-    long lastDropTime;
+    Texture dropImage;              // капля
+    Array<Rectangle> raindrops;     // массив оболочек капли
+    long lastDropTime;              // время создания капли
 
-    int dropsGathered;
-    String score = "Score: ";
-    int dropsSpeed = 200;
-    int bucketSpeed = 200;
-    int indexSpeed = 2;
+    int dropsGathered;              // Счетчик количества пойманых капель
+    String score = "Score: ";       // Строка - Очки
+    int dropsSpeed = 200;           // Начальная скорость капли
+    int bucketSpeed = 200;          // Начальная скорость ведра
+    int indexSpeed = 2;             // индекс для увеличения скорости падения капли (на сколько увеличить скорость)
+    int respawnedDrop = 1000000000; // 1 сек в наносекундах
+    int numberToUpDrop = 5;         // количество капель до увеличения скорости падения капли
 
     // Молния
-    Texture lightningBoltImage;
-    Rectangle lightningBolt;
-    String[] lightningBolts = {"lightning_bolts_1.png", "lightning_bolts_2.png", "lightning_bolts_3.png"};
-    int rndLightningBoltsPath = MathUtils.random(0, 2);
-    long lastTimeLightningBolt;
+    Texture lightningBoltImage;     // молния
+    Rectangle lightningBolt;        // оболочка молнии
+    String[] lightningBolts = {"lightning_bolts_1.png", "lightning_bolts_2.png", "lightning_bolts_3.png"}; // массив молний
+    int rndLightningBoltsPath = MathUtils.random(0, 2); // случайное число от 0 до последнего индекса массива молний
+    long lastTimeLightningBolt;                         // впремя создания молнии
 
     // Жизни
-    Texture liveImage;
-    Array<Rectangle> lives;
-    int liveCount = 5;
+    Texture liveImage;      // жизнь
+    Array<Rectangle> lives; // массив оболочек для жизней
+    int liveCount = 5;      // количество жизней
+
+    int sizeBucket = 64;    // размер ведра
+    int sizeDrop = 64;      // размер капли
 
     public GameScreen(final Drop game) {
         this.game = game;
@@ -133,12 +140,12 @@ public class GameScreen implements Screen {
 
 	private void spawnRaindrop() {
 		Rectangle raindrop = new Rectangle();
-		raindrop.x = MathUtils.random(0, Const.WIDTH_SCREEN - Const.SIZE_IMAGE);
-		raindrop.y = Const.HEIGHT_SCREEN;
-		raindrop.width = Const.SIZE_IMAGE;
-		raindrop.height = Const.SIZE_IMAGE;
+		raindrop.x = MathUtils.random(0, Const.WIDTH_SCREEN - Const.SIZE_IMAGE);    // координата х
+		raindrop.y = Const.HEIGHT_SCREEN;                                           // координата у
+		raindrop.width = Const.SIZE_IMAGE;                                          // размер длины
+		raindrop.height = Const.SIZE_IMAGE;                                         // размер ширины
 		raindrops.add(raindrop);
-		lastDropTime = TimeUtils.nanoTime();
+		lastDropTime = TimeUtils.nanoTime();                                        // время создания в наносекундах
 	}
 
     @Override
@@ -148,7 +155,8 @@ public class GameScreen implements Screen {
 
         camera.update();
 
-        game.batch.setProjectionMatrix(camera.combined);
+        game.batch.setProjectionMatrix(camera.combined); // Установка матрицы экрана. Система координат (0;0) - нижний левый угол
+        // > Отрисовка на экране Начало
         game.batch.begin();
         game.batch.draw(backgroundImage, 0, 0); // фон
         game.font.draw(game.batch, score + dropsGathered, 20, 470); // очки
@@ -157,15 +165,20 @@ public class GameScreen implements Screen {
             game.batch.draw(liveImage, live.x, live.y, Const.SIZE_IMAGE / 4, Const.SIZE_IMAGE / 4); // жизнь
         }
 
-        game.batch.draw(bucketImage, bucket.x, bucket.y);
+        game.batch.draw(bucketImage, bucket.x, bucket.y, sizeBucket, sizeBucket); // ведро
         for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y); // капли
+            game.batch.draw(dropImage, raindrop.x, raindrop.y, sizeDrop, sizeDrop); // капли
         }
+
         game.batch.draw(lightningBoltImage, lightningBolt.x, lightningBolt.y);
         game.batch.end();
+        // > Отрисовка на экране Конец
 
         // <=> Увеличиваем скорость падения капель
-        if (dropsGathered % 20 == 0 && dropsGathered != 0) dropsSpeed += indexSpeed; // через каждые пойманные до увеличиваем скорость падения капель
+        if (dropsGathered % numberToUpDrop == 0 && dropsGathered != 0) {
+            dropsSpeed += indexSpeed; // через каждые numberToUpDrop пойманные до увеличиваем скорость падения капель
+            respawnedDrop -= indexSpeed*100; // Увеличиваем скорость появления капель
+        }
 
         // <=> Конец игры, если счет стал меньше -10
         if (dropsGathered < -10 || liveCount <= 0) game.setScreen(new GameOverScreen(game, dropsGathered));
@@ -188,7 +201,9 @@ public class GameScreen implements Screen {
         if (bucket.x > Const.WIDTH_SCREEN - Const.SIZE_IMAGE) bucket.x = Const.WIDTH_SCREEN - Const.SIZE_IMAGE;
 
         // <=> Время для создания новой капли
-        if (TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnRaindrop();
+        if (TimeUtils.nanoTime() - lastDropTime > respawnedDrop) {
+            spawnRaindrop(); // создаем капли
+        }
 
         // <=> Время для молнии
         if (TimeUtils.millis() - lastTimeLightningBolt > 1000) {
@@ -207,17 +222,22 @@ public class GameScreen implements Screen {
                 iter.remove();
                 // счет:
                 dropsGathered -= 2; // -2, капля не поймана
+
                 // координаты удара молнии
                 rndLightningBoltsPath = MathUtils.random(0, 2);
                 lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
-                lightningBolt.x = raindrop.x - 290/2; // расчет удара молнии в пропущеную каплю
-                lightningBolt.y = 0;
-                lastTimeLightningBolt = TimeUtils.millis();
+                lightningBolt.x = raindrop.x - 290/2;       // расчет удара молнии в координаты пропущеной капли, координата х
+                lightningBolt.y = 0;                        // координата у
+                lastTimeLightningBolt = TimeUtils.millis(); // время создания молнии
+
                 // звук молнии
-                loudlySound.play();
+                loudlySound.play();             // воспроизвести звук молнии
+                // размеры ведра и капель
+                sizeBucket -= 8;                // уменьшение размера ведра
+                sizeDrop -= 8;                  // уменьшение размера капли
                 // жизни--
-                liveCount--;
-                lives.removeIndex(liveCount);
+                liveCount--;                    // уменьшаем количество жизней
+                lives.removeIndex(liveCount);   // Удаляем из массива одну жизнь (элемент под номером - текущее значение liveCount)
             }
 
             // <=>  столкновение капли с ведром
