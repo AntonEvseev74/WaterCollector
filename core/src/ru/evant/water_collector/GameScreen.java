@@ -58,7 +58,7 @@ public class GameScreen implements Screen {
     Texture bucketImage;    // ведро
     Rectangle bucket;       // оболочка ведра (прямоугольный контейнер, в который поместим ведро, для работы с координатами и размерами ведра)
 
-    Vector3 touchPos;
+    Vector3 touchPos;       // для получения координат касания экрана мышкой(Click) или пальцем(Android),
 
     // Капли
     Texture dropImage;              // капля
