@@ -16,6 +16,11 @@ package ru.evant.water_collector;
  *      - исправить размеры всех 3х картинок, сделать одинаковыми (200х480)
  *      + сделать, чтобы молнии били разные
  *      + сделать, чтобы удар молнии приходился в центр непойманной капли
+ *
+ * - сделать сколько не поймано
+ * - через 10 пойманых капель увеличивать скорость капель
+ * - сделать экран рекордов
+ * - сделать меню (кнопк: выход, рекорды)
  */
 
 import com.badlogic.gdx.Gdx;
@@ -57,6 +62,9 @@ public class GameScreen implements Screen {
 
     int dropsGathered;
     String score = "Score: ";
+    int dropsSpeed = 200;
+    int bucketSpeed = 200;
+    int indexSpeed = 2;
 
     // Молния
     Texture lightningBoltImage;
@@ -132,6 +140,12 @@ public class GameScreen implements Screen {
         game.batch.draw(lightningBoltImage, lightningBolt.x, lightningBolt.y);
         game.batch.end();
 
+        // <=> Увеличиваем скорость падения капель
+        if (dropsGathered % 20 == 0 && dropsGathered != 0) dropsSpeed += indexSpeed; // через каждые пойманные до увеличиваем скорость падения капель
+
+        // <=> Конец игры, если счет стал меньше -10
+        if (dropsGathered < -10) game.setScreen(new GameOverScreen(game));
+
         // <=> Слушатель нажатия на экран
         if (Gdx.input.isTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
@@ -141,9 +155,9 @@ public class GameScreen implements Screen {
 
         // <=> Слушатели нажатия кнопок клавиатуры: влево и вправо
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-            bucket.x -= 200 * Gdx.graphics.getDeltaTime(); // Скорость дыижения ведра влево
+            bucket.x -= bucketSpeed * Gdx.graphics.getDeltaTime(); // Скорость дыижения ведра влево
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-            bucket.x += 200 * Gdx.graphics.getDeltaTime(); // Скорость дыижения ведра вправо
+            bucket.x += bucketSpeed * Gdx.graphics.getDeltaTime(); // Скорость дыижения ведра вправо
 
         // <=> Ограничитель движения ведра по оси X
         if (bucket.x < 0) bucket.x = 0;
@@ -162,7 +176,7 @@ public class GameScreen implements Screen {
         Iterator<Rectangle> iter = raindrops.iterator();
         while (iter.hasNext()) {
             Rectangle raindrop = iter.next();
-            raindrop.y -= 200 * Gdx.graphics.getDeltaTime(); // Скорость падения капли
+            raindrop.y -= dropsSpeed * Gdx.graphics.getDeltaTime(); // Скорость падения капли
 
             // <=> Удаление капли, если она ушла за пределы экрана по оси Y
             if (raindrop.y + Const.SIZE_IMAGE < 0) {
@@ -172,7 +186,7 @@ public class GameScreen implements Screen {
                 // координаты удара молнии
                 rndLightningBoltsPath = MathUtils.random(0, 2);
                 lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
-                lightningBolt.x = raindrop.x - 290/2; // 360 Это половина размера ширины картинки молнии
+                lightningBolt.x = raindrop.x - 290/2; // расчет удара молнии в пропущеную каплю
                 lightningBolt.y = 0;
                 lastTimeLightningBolt = TimeUtils.millis();
                 // звук молнии
