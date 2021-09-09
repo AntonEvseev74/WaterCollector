@@ -6,4 +6,6 @@ public class Const {
     public final static int HEIGHT_SCREEN = 480;
 
     public final static int SIZE_IMAGE = 64;
+
+    public final static int INDENT = 24;
 }

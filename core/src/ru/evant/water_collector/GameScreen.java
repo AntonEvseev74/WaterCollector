@@ -21,6 +21,7 @@ package ru.evant.water_collector;
  * - через 10 пойманых капель увеличивать скорость капель
  * - сделать экран рекордов
  * - сделать меню (кнопк: выход, рекорды)
+ * - добавить жизни
  */
 
 import com.badlogic.gdx.Gdx;
@@ -56,6 +57,8 @@ public class GameScreen implements Screen {
     Rectangle bucket;
 
     Vector3 touchPos;
+
+    // Капли
     Texture dropImage;
     Array<Rectangle> raindrops;
     long lastDropTime;
@@ -73,6 +76,11 @@ public class GameScreen implements Screen {
     int rndLightningBoltsPath = MathUtils.random(0, 2);
     long lastTimeLightningBolt;
 
+    // Жизни
+    Texture liveImage;
+    Array<Rectangle> lives;
+    int liveCount = 5;
+
     public GameScreen(final Drop game) {
         this.game = game;
 
@@ -87,6 +95,17 @@ public class GameScreen implements Screen {
         bucketImage = new Texture("bucket.png");
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
         loudlySound = Gdx.audio.newSound(Gdx.files.internal("loudly.mp3"));
+
+        // Жизни
+        liveImage = new Texture("bucket.png");
+        lives = new Array<>();
+        for (int i = liveCount; i > 0; i--) {
+            lives.add(new Rectangle(
+                    Const.INDENT * 3 + i * Const.INDENT ,
+                    Const.HEIGHT_SCREEN - liveImage.getHeight()/4 - 10,
+                    Const.SIZE_IMAGE/4,
+                    Const.SIZE_IMAGE/4));
+        }
 
         lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
 
@@ -131,11 +150,16 @@ public class GameScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.batch.draw(backgroundImage, 0, 0);
-        game.font.draw(game.batch, score + dropsGathered, 20, 470);
+        game.batch.draw(backgroundImage, 0, 0); // фон
+        game.font.draw(game.batch, score + dropsGathered, 20, 470); // очки
+
+        for (Rectangle live : lives){
+            game.batch.draw(liveImage, live.x, live.y, Const.SIZE_IMAGE / 4, Const.SIZE_IMAGE / 4); // жизнь
+        }
+
         game.batch.draw(bucketImage, bucket.x, bucket.y);
         for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y);
+            game.batch.draw(dropImage, raindrop.x, raindrop.y); // капли
         }
         game.batch.draw(lightningBoltImage, lightningBolt.x, lightningBolt.y);
         game.batch.end();
@@ -144,7 +168,7 @@ public class GameScreen implements Screen {
         if (dropsGathered % 20 == 0 && dropsGathered != 0) dropsSpeed += indexSpeed; // через каждые пойманные до увеличиваем скорость падения капель
 
         // <=> Конец игры, если счет стал меньше -10
-        if (dropsGathered < -10) game.setScreen(new GameOverScreen(game));
+        if (dropsGathered < -10 || liveCount <= 0) game.setScreen(new GameOverScreen(game, dropsGathered));
 
         // <=> Слушатель нажатия на экран
         if (Gdx.input.isTouched()) {
@@ -191,14 +215,15 @@ public class GameScreen implements Screen {
                 lastTimeLightningBolt = TimeUtils.millis();
                 // звук молнии
                 loudlySound.play();
+                // жизни--
+                liveCount--;
+                lives.removeIndex(liveCount);
             }
 
             // <=>  столкновение капли с ведром
             if (raindrop.overlaps(bucket)) {
-                //счет
-                dropsGathered++; // +1, капля поймана
-                //звук пойманой капли
-                dropSound.play();
+                dropsGathered++; // счет. +1, капля поймана
+                dropSound.play();//звук пойманой капли
                 iter.remove();
             }
         }
@@ -234,6 +259,7 @@ public class GameScreen implements Screen {
         loudlySound.dispose();
         rainMusic.dispose();
         lightningBoltImage.dispose();
+        liveImage.dispose();
     }
 
     @Override

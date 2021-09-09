@@ -17,12 +17,16 @@ public class GameOverScreen implements Screen {
     String forGameOver = "Game Over!"; // Поймайте все капли!
     String forContinue = "Click to try again!"; // Нажмите чтобы продолжить
     String forDescription = "Either the hands are crooked.\nWhether the bucket is full of holes.";
+    String forScore = "Your SCORE = ";
+    int score;
 
-    public GameOverScreen(final Drop game) {
+    public GameOverScreen(final Drop game, int score) {
         this.game = game;
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Const.WIDTH_SCREEN, Const.HEIGHT_SCREEN);
+        forScore += score;
+        this.score = score;
     }
 
     @Override
@@ -39,9 +43,10 @@ public class GameOverScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.font.draw(game.batch, forGameOver, 300, 270);
-        game.font.draw(game.batch, forDescription, 300, 250);
-        game.font.draw(game.batch, forContinue, 300, 210);
+        game.font.draw(game.batch, forGameOver, 350, 400);
+        game.font.draw(game.batch, forScore, 320, 350);
+        if (score < 0) game.font.draw(game.batch, forDescription, 350, 170);
+        game.font.draw(game.batch, forContinue, 350, 100);
         game.batch.end();
 
         //  <=> было ли прикосновение к экрану
