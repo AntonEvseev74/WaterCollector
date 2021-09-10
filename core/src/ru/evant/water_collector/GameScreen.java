@@ -4,26 +4,20 @@ package ru.evant.water_collector;
  * Логика игры:
  *
  * Нужно ведром ловить капли воды.
- * Если капли пойманы очки увеличиваются,
- * в ином случае очки уменьшаются и гремит гром.
+ * У игрока есть пять жизней (отображены в виде маленьких ведер в верхней части экрана).
  *
- * Очки:
+ * Если капли пойманы очки увеличиваются,
+ * в ином случае: уменьшаются размеры капли и ведра, уменьшаются очки, гремит гром и бьёт молния.
+ * После каждой пойманой 20й капли увеличивается скорость падения капель.
+ *
+ * Очки (отображены в верхнем правом углу экрана):
  * +1 -> Капля поймана
  * -2 -> Капля не поймана
  */
 
-/* + разобраться с молниями:
- *      + исправить размеры всех 3х картинок, сделать одинаковыми
- *      + сделать, чтобы молнии били разные
- *      + сделать, чтобы удар молнии приходился в центр непойманной капли
- *
- * + через 20 пойманых капель увеличивать скорость капель
- *
+/*
  * - сделать экран рекордов
  * - сделать меню (кнопк: выход, рекорды)
- *
- * + добавить жизни:
- *      + количество жизней уменьшается при пропуске капли
  */
 
 import com.badlogic.gdx.Gdx;
@@ -71,7 +65,7 @@ public class GameScreen implements Screen {
     int bucketSpeed = 200;          // Начальная скорость ведра
     int indexSpeed = 2;             // индекс для увеличения скорости падения капли (на сколько увеличить скорость)
     int respawnedDrop = 1000000000; // 1 сек в наносекундах
-    int numberToUpDrop = 5;         // количество капель до увеличения скорости падения капли
+    int numberToUpSpeedDrop = 20;         // количество капель до увеличения скорости падения капли
 
     // Молния
     Texture lightningBoltImage;     // молния
@@ -109,16 +103,16 @@ public class GameScreen implements Screen {
         for (int i = liveCount; i > 0; i--) {
             lives.add(new Rectangle(
                     Const.INDENT * 3 + i * Const.INDENT ,
-                    Const.HEIGHT_SCREEN - liveImage.getHeight()/4 - 10,
-                    Const.SIZE_IMAGE/4,
-                    Const.SIZE_IMAGE/4));
+                    Const.HEIGHT_SCREEN - liveImage.getHeight()/4f - 10,
+                    Const.SIZE_IMAGE/4f,
+                    Const.SIZE_IMAGE/4f));
         }
 
         lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
 
         //Молния
         lightningBolt = new Rectangle();
-        lightningBolt.x = Const.WIDTH_SCREEN / 2 - 300 / 2;
+        lightningBolt.x = Const.WIDTH_SCREEN / 2f - 300f / 2f;
         lightningBolt.y = Const.HEIGHT_SCREEN;
 
         //Включаем музыку
@@ -128,7 +122,7 @@ public class GameScreen implements Screen {
 
         //ведро
         bucket = new Rectangle();
-        bucket.x = Const.WIDTH_SCREEN / 2 - Const.SIZE_IMAGE / 2;
+        bucket.x = Const.WIDTH_SCREEN / 2f - Const.SIZE_IMAGE / 2f;
         bucket.y = 20;
         bucket.width = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
         bucket.height = Const.SIZE_IMAGE - 24; // (Размер для вычисления столкновения)
@@ -162,7 +156,7 @@ public class GameScreen implements Screen {
         game.font.draw(game.batch, score + dropsGathered, 20, 470); // очки
 
         for (Rectangle live : lives){
-            game.batch.draw(liveImage, live.x, live.y, Const.SIZE_IMAGE / 4, Const.SIZE_IMAGE / 4); // жизнь
+            game.batch.draw(liveImage, live.x, live.y, Const.SIZE_IMAGE / 4f, Const.SIZE_IMAGE / 4f); // жизнь
         }
 
         game.batch.draw(bucketImage, bucket.x, bucket.y, sizeBucket, sizeBucket); // ведро
@@ -175,7 +169,7 @@ public class GameScreen implements Screen {
         // > Отрисовка на экране Конец
 
         // <=> Увеличиваем скорость падения капель
-        if (dropsGathered % numberToUpDrop == 0 && dropsGathered != 0) {
+        if (dropsGathered % numberToUpSpeedDrop == 0 && dropsGathered != 0) {
             dropsSpeed += indexSpeed; // через каждые numberToUpDrop пойманные до увеличиваем скорость падения капель
             respawnedDrop -= indexSpeed*100; // Увеличиваем скорость появления капель
         }
@@ -226,7 +220,7 @@ public class GameScreen implements Screen {
                 // координаты удара молнии
                 rndLightningBoltsPath = MathUtils.random(0, 2);
                 lightningBoltImage = new Texture(lightningBolts[rndLightningBoltsPath]);
-                lightningBolt.x = raindrop.x - 290/2;       // расчет удара молнии в координаты пропущеной капли, координата х
+                lightningBolt.x = raindrop.x - 290/2f;       // расчет удара молнии в координаты пропущеной капли, координата х
                 lightningBolt.y = 0;                        // координата у
                 lastTimeLightningBolt = TimeUtils.millis(); // время создания молнии
 
